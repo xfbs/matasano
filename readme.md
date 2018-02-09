@@ -83,10 +83,9 @@ to be converted. Rust provides a useful `Iterator` interface to working with str
 of data. So, to convert any stream of bytes into hex-encoded data, an Iterator adapter
 comes in handy.
 
-This looks a bit intimidating due to the unwiedly return type, but it works. Given
-an `Iterator` over `u8`, it defines the method `to_hex()`, which returns another
-Iterator over `char`s that is twice as long and is the hex-encoded version of the
-bytes.
+This looks a bit intimidating due to the unwiedly return type, but it works. For every
+byte, it uses the `to_hex()` function with `Iterator::flat_map()` to map each byte to
+two `char`s representing that byte.
 
 ###### [src/hex.rs](src/hex.rs), lines 11-22
 
@@ -104,3 +103,24 @@ pub trait ToHex: Iterator<Item=u8> where Self: Sized {
 
 impl<T> ToHex for T where T: Iterator<Item=u8> {}
 ```
+
+So far, any arbitary data can be hex-encoded with `to_hex()` on any
+iterator that iterates over `u8`s, like so:
+
+```rust
+assert_eq!(
+    "astringent".bytes().to_hex().collect::<String>(),
+    String::from("61737472696e67656e74"));
+```
+
+But what about going the other way, from hex-encoded back into raw data? This
+direction is just a tad more difficult, because there are more constraints and
+error handling. 
+
+Every possible byte in a raw data stream can be hex-encoded, so error handling
+isn't necessary. But when taking data and hex-decoding it into bytes, there are
+two potential issues: first, not ever character is a valid digit in hexadecimal
+notation. Additionally, for every byte, two hexadecimal digits are needed,
+meaning that there is an error when the input stream has an odd length.
+
+
