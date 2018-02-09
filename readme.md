@@ -46,13 +46,61 @@ hexadecimal number, and vice versa. That means that for every byte, we get two
 hexadecimal numbers, and for every two hexadecimal numbers, we get one byte.
 This means that one hexadecimal number is worth one half-byte, also known as nibble.
 
-So, in order to convert a byte into hexadecimal, there are two steps: we need to turn
-the byte into two nibbles, lower and higher, and then we need to hex-encode both.
+So, in order to convert a byte into hexadecimal, there are two steps: turn
+the byte into two nibbles, lower and higher, and then hex-encode both.
 
-> File [src/nibble.rs](src/nibble.rs), lines 1-4:
-> ```rust
-> /// Extract both nibbles of a byte.
-> pub fn nibbles(byte: u8) -> (u8, u8) {
->     ((byte >> 4) & 0b1111, byte & 0b1111)
-> }
-> ```
+Extracting both nibbles of a file is easy with a bit of bit-banging, yielding
+a tuple of the higher and lower nibbles. Each nibble is of course only 4 bits wide,
+but represented as u8, for lack of a smaller data type in Rust.
+
+###### [src/nibble.rs](src/nibble.rs), lines 1-4
+
+```rust
+/// Extract both nibbles of a byte.
+pub fn nibbles(byte: u8) -> (u8, u8) {
+    ((byte >> 4) & 0b1111, byte & 0b1111)
+}
+```
+
+With this, and the library function `std::char::from_digit()`, it is easy to implement
+a function to turn a single byte (`u8` in Rust) into hexadecimal notation (two `char`s).
+Since the nibbles are each only 4 bit wide, the `char::from_digit(num: u32, radix: u32)`
+call is never going to fail, so it's safe to call `unwrap()` on the result and call it
+a day.
+
+###### [src/hex.rs](src/hex.rs), lines 5-9
+
+```rust
+/// Hex-encodes a single byte.
+pub fn to_hex(byte: u8) -> (char, char) {
+    let (msn, lsn) = nibbles(byte);
+    (from_digit(msn as u32, 16).unwrap(), from_digit(lsn as u32, 16).unwrap())
+}
+```
+
+But this isn't the end of it. Most of the time, there is more than just a single byte
+to be converted. Rust provides a useful `Iterator` interface to working with streams
+of data. So, to convert any stream of bytes into hex-encoded data, an Iterator adapter
+comes in handy.
+
+This looks a bit intimidating due to the unwiedly return type, but it works. Given
+an `Iterator` over `u8`, it defines the method `to_hex()`, which returns another
+Iterator over `char`s that is twice as long and is the hex-encoded version of the
+bytes.
+
+###### [src/hex.rs](src/hex.rs), lines 11-22
+
+```rust
+pub trait ToHex: Iterator<Item=u8> where Self: Sized {
+    /// Taking an Iterator over `u8`, generate a new Iterator over the `u8` data hex-encoded,
+    /// as `char`s.
+    fn to_hex(self) -> FlatMap<Self, Chain<Once<char>, Once<char>>, fn(u8) -> Chain<Once<char>, Once<char>>> {
+        self.flat_map(|byte: u8| {
+            let (msn, lsn) = to_hex(byte);
+            once(msn).chain(once(lsn))
+        })
+    }
+}
+
+impl<T> ToHex for T where T: Iterator<Item=u8> {}
+```
