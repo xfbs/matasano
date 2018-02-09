@@ -8,11 +8,11 @@ The [cryptopals](http://cryptopals.com) crypto challenges, implemented in
 - [Set 1: Basics](#set-1-basics)
     - [Convert Hex to Base64](#convert-hex-to-base64)
 
-## Set 1: Basics
+## Set 1: [Basics](http://cryptopals.com/sets/1)
 
-> This is the qualifying set. We picked the exercises in it to ramp
-> developers up gradually into coding cryptography, but also to verify that
-> we were working with people who were ready to write code.
+> This is the qualifying set. We picked the exercises in it to ramp developers
+> up gradually into coding cryptography, but also to verify that we were
+> working with people who were ready to write code.
 >
 > This set is relatively easy. With one exception, most of these exercises
 > should take only a couple minutes. But don't beat yourself up if it takes
@@ -32,13 +32,27 @@ The [cryptopals](http://cryptopals.com) crypto challenges, implemented in
 >   
 >     SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t
 >
-> So go ahead and make that happen. You'll need to use this code for the rest of
-> the exercises.
+> So go ahead and make that happen. You'll need to use this code for the rest
+> of the exercises.
 
-Writing a function to convert from hex to base64 would solve this problem, but that's not
-the one true path of the programmer. A better solution is to take this problem, and divide it
-up into smaller, modular subproblems.
+This problem can easily be broken down into two subproblems: *hex-decoding* and
+*base64-encoding*. Let's start with the hex format.
 
-In this case, there are two embedded problems: decoding hex-encoded data, and base64-encoding
-data.
+#### Hex Conversion
 
+Hexadecimal, being a base-16 number system, has one very useful property: one
+byte (which is an eight-digit binary number) representable as a two-digit
+hexadecimal number, and vice versa. That means that for every byte, we get two
+hexadecimal numbers, and for every two hexadecimal numbers, we get one byte.
+This means that one hexadecimal number is worth one half-byte, also known as nibble.
+
+So, in order to convert a byte into hexadecimal, there are two steps: we need to turn
+the byte into two nibbles, lower and higher, and then we need to hex-encode both.
+
+> File [src/nibble.rs](src/nibble.rs), lines 1-4:
+```rust
+/// Extract both nibbles of a byte.
+pub fn nibbles(byte: u8) -> (u8, u8) {
+    ((byte >> 4) & 0b1111, byte & 0b1111)
+}
+```
