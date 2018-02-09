@@ -1,6 +1,9 @@
+#![feature(try_from)]
 mod hex;
+mod bytes;
 
-pub use hex::{to_hex, ToHex};
+pub use hex::{ToHex};
+pub use bytes::ToBytes;
 
 #[cfg(test)]
 mod tests {
