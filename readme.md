@@ -50,9 +50,9 @@ So, in order to convert a byte into hexadecimal, there are two steps: we need to
 the byte into two nibbles, lower and higher, and then we need to hex-encode both.
 
 > File [src/nibble.rs](src/nibble.rs), lines 1-4:
-```rust
-/// Extract both nibbles of a byte.
-pub fn nibbles(byte: u8) -> (u8, u8) {
-    ((byte >> 4) & 0b1111, byte & 0b1111)
-}
-```
+> ```rust
+> /// Extract both nibbles of a byte.
+> pub fn nibbles(byte: u8) -> (u8, u8) {
+>     ((byte >> 4) & 0b1111, byte & 0b1111)
+> }
+> ```
