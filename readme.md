@@ -35,7 +35,7 @@ The [cryptopals](http://cryptopals.com) crypto challenges, implemented in
 >   So go ahead and make that happen. You'll need to use this code for the rest of
 >   the exercises.
 >
->   >   **Cryptopals Rule**
+>   >   **Cryptopals Rule**  
 >   >   Always operate on raw bytes, never on encoded strings. Only use hex and
 >   >   base64 for pretty-printing.
 
